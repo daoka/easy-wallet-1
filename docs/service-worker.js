@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.2.0/workbox-sw.js");
 
 importScripts(
-  "./precache-manifest.8be5a0ca9c52051fc655130df03abf6c.js"
+  "./precache-manifest.aedd34163235b43fe3cc0caae4ff8d2b.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "easy-wallet"});
@@ -30,7 +30,7 @@ workbox.clientsClaim();
 self.__precacheManifest = [
   {
     "url": "index.html",
-    "revision": "3905637a32f551fc0efc3d90568e22da"
+    "revision": "123fdb9a11a9f3df25b910c7223dc564"
   },
   {
     "url": "precache-manifest.0a8bcb831bc68f40d4aea1a797d66e71.js",
@@ -61,6 +61,10 @@ self.__precacheManifest = [
     "revision": "2326ea0c6a487f9ae67cd6696d45f337"
   },
   {
+    "url": "precache-manifest.291847e9e1dd7baf98dd06c003befacc.js",
+    "revision": "291847e9e1dd7baf98dd06c003befacc"
+  },
+  {
     "url": "precache-manifest.2a90d77e38976f119ccd3215c9f83b71.js",
     "revision": "2a90d77e38976f119ccd3215c9f83b71"
   },
@@ -73,8 +77,16 @@ self.__precacheManifest = [
     "revision": "47e3ad6c76e858285d9e42d034cef321"
   },
   {
+    "url": "precache-manifest.5220290c047c4e110cf886c8cf3a6808.js",
+    "revision": "5220290c047c4e110cf886c8cf3a6808"
+  },
+  {
     "url": "precache-manifest.7d2ece29d5f09f5186e00de6db1b72d0.js",
     "revision": "7d2ece29d5f09f5186e00de6db1b72d0"
+  },
+  {
+    "url": "precache-manifest.8be5a0ca9c52051fc655130df03abf6c.js",
+    "revision": "8be5a0ca9c52051fc655130df03abf6c"
   },
   {
     "url": "precache-manifest.9c8e6a24112401c3da1b3516041fc89a.js",
@@ -101,12 +113,16 @@ self.__precacheManifest = [
     "revision": "c8d1817add2252068d4e44b12ce67d20"
   },
   {
+    "url": "precache-manifest.e6241f15dd44f61ffd51dfe94ddd8b4d.js",
+    "revision": "e6241f15dd44f61ffd51dfe94ddd8b4d"
+  },
+  {
     "url": "precache-manifest.f42ac70b8bc65955f5e1ab84c6688805.js",
     "revision": "f42ac70b8bc65955f5e1ab84c6688805"
   },
   {
     "url": "service-worker.js",
-    "revision": "ffd6866cdb956b0dab49ef65648c3c1d"
+    "revision": "c7a5f83f3e826b2f83e8d6a16488fcc4"
   }
 ].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();

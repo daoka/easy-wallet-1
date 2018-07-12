@@ -62,8 +62,10 @@ export default class walletModel {
     // アカウント情報を取得.
     async getAccount() {
         let result = await this.nem.getAccount(this.address)
-        this.balance = result.account.balance / this.nem.getNemDivisibility()
-        if ( result.account.publicKey !== null ) { this.publicKey = result.account.publicKey }
+        this.balance = result.balance.balance / this.nem.getNemDivisibility()
+        if (result.publicAccount.hasPublicKey) {
+          this.publicKey = result.publicAccount.publicKey
+        }
     }
 
     // 送金(NEM)

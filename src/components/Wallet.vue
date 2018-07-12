@@ -102,7 +102,7 @@ export default class Wallet extends Vue {
       let result = await this.wallet.sendNem(this.toAddr, this.toAmount, this.message)
       console.log('tapSend', result)
       let message = '送金しました'
-      if (result.message !== 'SUCCESS') {
+      if (result.code !== 1) {
         message = "Error " + result.message
       }
       Vue.prototype.$toast(message)

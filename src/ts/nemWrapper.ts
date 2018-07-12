@@ -1,5 +1,7 @@
 import nem from 'nem-sdk'
 import encoding from 'encoding-japanese'
+import { NEMLibrary, NetworkTypes, AccountHttp, Address, AccountInfoWithMetaData, Account, TransferTransaction, TimeWindow, XEM, PlainMessage, TransactionHttp, MosaicHttp, MosaicId } from 'nem-library'
+import { Observable} from 'rxjs/Rx'
 
 export default class nemWrapper {
     endpoint: string = ''
@@ -12,7 +14,9 @@ export default class nemWrapper {
         this.host = 'https://aqualife2.supernode.me'
         this.port = '7891'
         this.net = nem.model.network.data.mainnet.id
-        this.endpoint = nem.model.objects.create("endpoint")(this.host, this.port)    
+        this.endpoint = nem.model.objects.create("endpoint")(this.host, this.port)
+        NEMLibrary.reset()
+        NEMLibrary.bootstrap(NetworkTypes.MAIN_NET)
     }
 
     // NISの状態確認.
@@ -42,86 +46,52 @@ export default class nemWrapper {
 
     // アカウント情報取得.
     async getAccount(address: string) {
-        let result = await nem.com.requests.account.data(this.endpoint, address)
+        const addressObj = new Address(address)
+        const accountHttp = new AccountHttp()
+        const result = await accountHttp.getFromAddress(addressObj).toPromise()
         return result
     }
 
     // 送金（NEM）
     async sendNem(address:string, privateKey:string, amount:number, message:string) {
-        let common = nem.model.objects.create('common')('', privateKey)
-        let transferTransaction = nem.model.objects.create('transferTransaction')(address, amount, message)
-        let transactionEntity = nem.model.transactions.prepare('transferTransaction')(common, transferTransaction, this.net)
-        let result = await nem.model.transactions.send(common, transactionEntity, this.endpoint)
-        return result
+       const transactionHttp = new TransactionHttp()
+       const account = Account.createWithPrivateKey(privateKey)
+       const transferTransaction = TransferTransaction.create(
+         TimeWindow.createWithDeadline(),
+         new Address(address),
+         new XEM(amount),
+         PlainMessage.create(message)
+       )
+       const signedTransaction = account.signTransaction(transferTransaction)
+       const result = await transactionHttp.announceTransaction(signedTransaction).toPromise()
+       return result
     }
 
     // 送金（Mosaic）
     async sendMosaics(address:string, privateKey:string, mosaics:Array<any>, message:string) {
-        let common = nem.model.objects.create('common')('', privateKey)
-        let transferTransaction = nem.model.objects.create('transferTransaction')(address, 1, message)
-        let mosaicDefinitionMetaDataPair:any = await this.getMosaicDefinitionMetaDataPair(this.endpoint, mosaics)
-        mosaics.forEach((mosaic) => {
-            let fullMosaicName = mosaic.namespace + ':' + mosaic.name
-            if ((mosaicDefinitionMetaDataPair[fullMosaicName].mosaicDefinition.id.namespaceId === mosaic.namespace) &&
-                (mosaicDefinitionMetaDataPair[fullMosaicName].mosaicDefinition.id.name === mosaic.name)) {
-                let divisibility = 0
-                mosaicDefinitionMetaDataPair[fullMosaicName].mosaicDefinition.properties.forEach((prop:any) => {
-                    if (prop.name === 'divisibility') { divisibility = prop.value }
-                })
-                let quantity = mosaic.amount * Math.pow(10, divisibility)
-                let mosaicAttachment = nem.model.objects.create('mosaicAttachment')(mosaic.namespace, mosaic.name, quantity)
-                transferTransaction.mosaics.push(mosaicAttachment)
-            }
-        })
-        let transactionEntity = nem.model.transactions.prepare('mosaicTransferTransaction')(common, transferTransaction, mosaicDefinitionMetaDataPair, this.net)
-        let result = await nem.model.transactions.send(common, transactionEntity, this.endpoint)
-        return result
+       const transactionHttp = new TransactionHttp()
+       const mosaicHttp = new MosaicHttp()
+       const account = Account.createWithPrivateKey(privateKey)
+
+       const result = Observable.from(mosaics)
+       .flatMap(_ => mosaicHttp.getMosaicTransferableWithAmount(_.mosaicId, _.quantity))
+       .toArray()
+       .map(mosaics => TransferTransaction.createWithMosaics(
+         TimeWindow.createWithDeadline(),
+         new Address(address),
+         mosaics,
+         PlainMessage.create(message)
+       ))
+       .map(transaction => account.signTransaction(transaction))
+       .flatMap(signedTransaction => transactionHttp.announceTransaction(signedTransaction))
+       .toPromise()
+
+       return result
     }
 
     // モザイク取得
     async getMosaics(address: string) {
         // 工事中
-    }
-
-    // モザイク定義取得.
-    async getMosaicDefinitionMetaDataPair(endpoint:string, mosaics:Array<any>)
-    {
-        return new Promise(function(resolve, reject) {
-            let mosaicDefinitionMetaDataPair = nem.model.objects.get('mosaicDefinitionMetaDataPair')
-            let mosaicCount = 0
-            mosaics.forEach((mosaic) => {
-                let mosaicAttachment = nem.model.objects.create('mosaicAttachment')(mosaic.namespace, mosaic.name, mosaic.amount)
-                let result = nem.com.requests.namespace.mosaicDefinitions(endpoint, mosaicAttachment.mosaicId.namespaceId)
-                .then((result: any) => {
-                    mosaicCount = mosaicCount + 1
-                    let neededDefinition = nem.utils.helpers.searchMosaicDefinitionArray(result.data, [mosaic.name])
-                    let fullMosaicName = nem.utils.format.mosaicIdToName(mosaicAttachment.mosaicId)
-                    if (undefined === neededDefinition[fullMosaicName]) {
-                        console.error('Mosaic not found !')
-                        return
-                    }
-                    mosaicDefinitionMetaDataPair[fullMosaicName] = {}
-                    mosaicDefinitionMetaDataPair[fullMosaicName].mosaicDefinition = neededDefinition[fullMosaicName]
-                    let supply = 0
-                    result.data.some((obj: any) => {
-                    if ((obj.mosaic.id.namespaceId === mosaic.namespace) &&
-                        (obj.mosaic.id.name === mosaic.name)) {
-                            obj.mosaic.properties.some((prop: any) => {
-                            if (prop.name === 'initialSupply') {
-                                supply = prop.value
-                                return true
-                            }
-                        })
-                    }
-                    })
-                    mosaicDefinitionMetaDataPair[fullMosaicName].supply = supply
-                    if (mosaicCount >= mosaics.length) { resolve(mosaicDefinitionMetaDataPair) }
-                }).catch((e: any) => {
-                    console.error(e)
-                    reject(e)
-                })
-            })
-        })
     }
 
     // QRコードjson取得.
