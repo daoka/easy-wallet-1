@@ -18,7 +18,7 @@ export default class walletModel {
             if (result === null) {
                 this.nem.createAccount()
                 .then((wallet) => {
-                    this.address = wallet.address
+                    this.address = wallet.address.plain()
                     this.privateKey = wallet.privateKey
                     this.save()
                 }).catch((error) => {
