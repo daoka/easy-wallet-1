@@ -53,6 +53,10 @@ export default class nemWrapper {
        const mosaicHttp = new MosaicHttp(this.nisList())
        const account = Account.createWithPrivateKey(privateKey)
 
+       const m = [{mosaicId: new MosaicId("puchikun", "thx"), quantity: 1}]
+       console.log(mosaics)
+       console.log(m)
+
        const result = Observable.from(mosaics)
        .flatMap(_ => mosaicHttp.getMosaicTransferableWithAmount(_.mosaicId, _.quantity))
        .toArray()
@@ -76,7 +80,8 @@ export default class nemWrapper {
         const result = await accountHttp.getMosaicOwnedByAddress(new Address(address))
         .flatMap(_ => _)
         .filter(mosaic => mosaic.mosaicId.namespaceId !== 'nem')
-        .flatMap(mosaic => mosaicHttp.getMosaicDefinition(mosaic.mosaicId))
+        .flatMap(mosaic => mosaicHttp.getMosaicTransferableWithAmount(mosaic.mosaicId, mosaic.quantity))
+        .toArray()
         .toPromise()
 
         return result

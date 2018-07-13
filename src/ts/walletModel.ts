@@ -1,11 +1,13 @@
 import localForage from 'localforage'
 import nemWrapper from './nemWrapper'
+import { MosaicTransferable } from '../../node_modules/nem-library';
 
 export default class walletModel {
     balance: number = 0
     address: string = ''
     publicKey: string = ''
     privateKey: string = ''
+    mosaics: Array<MosaicTransferable> = []
 
     nem = new nemWrapper()
 
@@ -66,12 +68,19 @@ export default class walletModel {
         if (result.publicAccount.hasPublicKey) {
           this.publicKey = result.publicAccount.publicKey
         }
+        this.mosaics = await this.nem.getMosaics(this.address)
     }
 
     // 送金(NEM)
     async sendNem(address:string, amount:number, message:string)  {
         let result = await this.nem.sendNem(address, this.privateKey, amount, message)
         return result
+    }
+
+    // 送金(モザイク)
+    async sendMosaic(address:string, mosaics:Array<any>, message:string) {
+      let result = await this.nem.sendMosaics(address, this.privateKey, mosaics, message)
+      return result
     }
 
     toJSON() {
