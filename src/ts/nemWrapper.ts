@@ -1,13 +1,12 @@
-import nem from 'nem-sdk'
 import encoding from 'encoding-japanese'
-import { NEMLibrary, NetworkTypes, AccountHttp, Address, AccountInfoWithMetaData, Account, TransferTransaction, TimeWindow, XEM, PlainMessage, TransactionHttp, MosaicHttp, MosaicId, ServerConfig, Password, SimpleWallet } from 'nem-library'
+import { NEMLibrary, NetworkTypes, AccountHttp, Address, Account, TransferTransaction, TimeWindow, XEM, PlainMessage, TransactionHttp, MosaicHttp, MosaicId, ServerConfig, Password, SimpleWallet } from 'nem-library'
 import { Observable} from 'rxjs/Rx'
 
 export default class nemWrapper {
 
     constructor () {
         NEMLibrary.reset()
-        NEMLibrary.bootstrap(NetworkTypes.MAIN_NET)
+        NEMLibrary.bootstrap(NetworkTypes.TEST_NET)
     }
 
     // アカウント作成.
@@ -25,10 +24,9 @@ export default class nemWrapper {
     }
 
     // アカウント情報取得.
-    async getAccount(address: string) {
-        const addressObj = new Address(address)
+    async getAccount(publicKey: string) {
         const accountHttp = new AccountHttp(this.nisList())
-        const result = await accountHttp.getFromAddress(addressObj).toPromise()
+        const result = await accountHttp.getFromPublicKey(publicKey).toPromise()
         return result
     }
 
@@ -53,9 +51,7 @@ export default class nemWrapper {
        const mosaicHttp = new MosaicHttp(this.nisList())
        const account = Account.createWithPrivateKey(privateKey)
 
-       const m = [{mosaicId: new MosaicId("puchikun", "thx"), quantity: 1}]
        console.log(mosaics)
-       console.log(m)
 
        const result = Observable.from(mosaics)
        .flatMap(_ => mosaicHttp.getMosaicTransferableWithAmount(_.mosaicId, _.quantity))
@@ -121,11 +117,7 @@ export default class nemWrapper {
 
     private nisList():ServerConfig[] {
       return [
-        {protocol: "https", domain: "aqualife1.supernode.me", port: 7891 },
-        {protocol: "https", domain: "aqualife2.supernode.me", port: 7891 },
-        {protocol: "https", domain: "aqualife3.supernode.me", port: 7891 },
-        {protocol: "https", domain: "beny.supernode.me", port: 7891 },
-        {protocol: "https", domain: "shibuya.supernode.me", port: 7891 },
+        {protocol: "https", domain: "nistest.ttechdev.com", port: 7891 }
         ]
     }
 }

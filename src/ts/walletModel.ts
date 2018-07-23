@@ -1,6 +1,6 @@
 import localForage from 'localforage'
 import nemWrapper from './nemWrapper'
-import { MosaicTransferable } from '../../node_modules/nem-library';
+import { MosaicTransferable, Account } from '../../node_modules/nem-library';
 
 export default class walletModel {
     balance: number = 0
@@ -20,8 +20,10 @@ export default class walletModel {
             if (result === null) {
                 this.nem.createAccount()
                 .then((wallet) => {
+                    const account = Account.createWithPrivateKey(wallet.privateKey)
                     this.address = wallet.address.plain()
                     this.privateKey = wallet.privateKey
+                    this.publicKey = account.publicKey
                     this.save()
                 }).catch((error) => {
                     console.error(error)
@@ -63,11 +65,8 @@ export default class walletModel {
 
     // アカウント情報を取得.
     async getAccount() {
-        let result = await this.nem.getAccount(this.address)
+        let result = await this.nem.getAccount(this.publicKey)
         this.balance = result.balance.balance / this.nem.getNemDivisibility()
-        if (result.publicAccount.hasPublicKey) {
-          this.publicKey = result.publicAccount.publicKey
-        }
         this.mosaics = await this.nem.getMosaics(this.address)
     }
 

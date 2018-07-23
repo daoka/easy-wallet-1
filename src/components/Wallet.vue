@@ -11,7 +11,10 @@
           </v-card-actions>
           <v-card-text>{{ wallet.balance }} xem</v-card-text>
           <div v-for="mosaic in wallet.mosaics">
-            {{mosaic.mosaicId.namespaceId}}:{{mosaic.mosaicId.name}} {{ mosaic.amount / Math.pow(10, mosaic.properties.divisibility)}}
+            <v-card-text>
+              {{mosaic.mosaicId.namespaceId}}:{{mosaic.mosaicId.name}}
+              {{ mosaic.amount / Math.pow(10, mosaic.properties.divisibility)}}
+            </v-card-text>
           </div>
           <v-card-title><b>送金先アドレス</b></v-card-title>
           <v-card-text>{{ wallet.address }}</v-card-text>
